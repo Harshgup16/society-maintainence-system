@@ -1,128 +1,43 @@
-# Society Maintenance Tracker — System Design Architecture
+# Society Maintenance Tracker — System Design Write-Up
 
-## 1. Overview
-The Society Maintenance Tracker is a full-stack, enterprise-grade web application built to streamline complaint management and communication within residential apartment societies. Designed with a minimal, high-contrast, editorial aesthetic inspired by Akaru.fr, the system prioritizes clarity, accountability, and real-time visibility for both residents and administration.
-
----
-
-## 2. System Architecture & Tech Stack
+## 1. Complaint History & Lifecycle Model
+The complaint lifecycle enforces a strict, append-only state transition model:
+- **States**: `OPEN` → `IN_PROGRESS` → `RESOLVED` (Terminal).
+- **Append-Only Audit Log (`complaint_history`)**: Every status change or priority adjustment creates an immutable historical entry containing `complaint_id`, `changed_by`, `old_status`, `new_status`, `old_priority`, `new_priority`, `note`, and `created_at`.
+- **Database Trigger**: A PostgreSQL `BEFORE UPDATE` trigger (`handle_complaint_status_change`) automatically validates state transitions, sets `resolved_at = NOW()` upon resolution, and prevents reopening closed complaints.
 
 ```
-+-----------------------------------------------------------------------+
-|                             Frontend Layer                            |
-|                 Next.js 14 App Router + Tailwind CSS                  |
-|                 (Akaru Editorial UI Design System)                    |
-+-----------------------------------+-----------------------------------+
-                                    |
-                                    v
-+-----------------------------------+-----------------------------------+
-|                              API Layer                            |
-|             Next.js Route Handlers + Zod Validation               |
-+-----------------+---------------------------------+-------------------+
-                  |                                 |
-                  v                                 v
-+-----------------+-------------------+   +---------+-------------------+
-|          Supabase Service           |   |       Resend Service        |
-|  - PostgreSQL Database + RLS       |   |  - Automated Email Engine   |
-|  - Auth & Custom Claims (RBAC)      |   +-----------------------------+
-|  - Storage (Signed Photo URLs)      |
-+-------------------------------------+
-```
-
-- **Frontend Framework**: Next.js 14 (App Router, Server & Client Components)
-- **Styling & Animation**: Tailwind CSS with custom Akaru design tokens (`#f0ece4` background, hover slide-in animations, pill badges)
-- **Database & Backend**: Supabase PostgreSQL with 7 normalized tables, custom ENUMs, triggers, and RPC functions
-- **Authorization**: Row Level Security (RLS) policies combined with Custom Access Token hooks (`custom_access_token_hook`)
-- **Storage**: Supabase Storage (`complaint-photos` private bucket) with time-bound signed URLs (3600s expiration)
-- **Email Engine**: Resend API for transactional status updates and emergency notice broadcasts
-
----
-
-## 3. Database Schema & Data Modeling
-
-The relational model consists of 7 normalized tables designed to maintain data integrity and an append-only audit trail:
-
-1. **`profiles`**: Stores resident personal data (full name, apartment number, phone), linked 1:1 with `auth.users`.
-2. **`user_roles`**: Maps users to roles (`resident` or `admin`) for RBAC enforcement.
-3. **`complaints`**: Core complaint records containing category, description, status (`open`, `in_progress`, `resolved`), priority (`low`, `medium`, `high`), and overdue status (`is_overdue`).
-4. **`complaint_history`**: Append-only log recording all status and priority transitions, old/new states, author, and timestamp.
-5. **`complaint_photos`**: Metadata for uploaded photos linked to storage paths.
-6. **`notices`**: Society-wide announcements with title, content, importance flag, and author metadata.
-7. **`app_settings`**: Key-value store for global configurations, including `overdue_threshold_days`.
-
-```mermaid
-erDiagram
-    profiles ||--o{ complaints : "raises"
-    profiles ||--o{ complaint_history : "logs"
-    profiles ||--o{ notices : "authors"
-    auth_users ||--|| profiles : "extends"
-    auth_users ||--|| user_roles : "assigned"
-    complaints ||--o{ complaint_history : "tracks"
-    complaints ||--o{ complaint_photos : "attaches"
+[OPEN] ──> [IN PROGRESS] ──> [RESOLVED (Terminal)]
+   │                               │
+   └────── (Direct Close) ─────────┘
 ```
 
 ---
 
-## 4. Security & Row Level Security (RLS)
-
-Security is implemented in three defense layers:
-
-1. **Next.js Middleware**: Refreshes user sessions and inspects role metadata to block unauthenticated or unauthorized route access at the edge.
-2. **API Handlers**: Validates incoming payload shapes via Zod schemas and re-verifies user roles from JWT claims.
-3. **Database RLS Policies**:
-   - `complaints`: Residents can SELECT and INSERT only their own complaints (`auth.uid() = resident_id`). Admins can SELECT and UPDATE all complaints.
-   - `complaint_photos`: Private storage bucket. SELECT access requires owning the parent complaint or having admin privileges. Signed URLs ensure temporary access without exposing raw storage keys.
-   - `notices`: All authenticated users can SELECT notices; only admins can INSERT, UPDATE, or DELETE.
+## 2. Overdue Detection Mechanism
+Overdue detection operates dynamically using a configurable SLA threshold stored in `app_settings` (`overdue_threshold_days`, default: 7 days):
+- **SLA Threshold Calculation**: An automated database RPC function (`check_overdue_complaints()`) identifies any complaint in `open` or `in_progress` status created prior to `NOW() - threshold_days * INTERVAL '1 day'`.
+- **Automatic Execution**: Invoked on every admin dashboard load to flag stale complaints by setting `is_overdue = true`.
+- **Priority Sorting**: Overdue complaints automatically float to the top of admin filter views with high-visibility red badge indicators and left border highlights.
 
 ---
 
-## 5. Workflow State Machine & Business Rules
-
-The complaint lifecycle follows strict state transition rules enforced at both API and Database levels:
-
-```
-               +--------------+
-               |     OPEN     |
-               +------+-------+
-                      |
-           +----------+----------+
-           |                     |
-           v                     v
-    +--------------+      +--------------+
-    | IN PROGRESS  |----->|   RESOLVED   | (Terminal)
-    +--------------+      +--------------+
-```
-
-### Business Rules:
-- **Reopening Guard**: Once a complaint reaches `resolved`, it becomes terminal and **cannot** be reopened or reverted to `open` / `in_progress`.
-- **Automatic Resolution Timestamps**: Transitioning to `resolved` automatically sets `resolved_at = NOW()` and clears the `is_overdue` flag via database triggers.
-- **Audit Logging**: Every status or priority update generates a mandatory entry in `complaint_history`.
+## 3. Photo Evidence & Storage Handling
+Photo upload supports both file attachment (drag & drop) and live webcam snapshot capture:
+- **Validation**: Enforces max 3 photos per complaint, max 5MB size limit per image, and restricted MIME types (`image/jpeg`, `image/png`, `image/webp`).
+- **Private Storage Bucket**: Photos are stored securely in a private Supabase Storage bucket (`complaint-photos`) using path pattern `{complaint_id}/{timestamp}-{random}.jpg`.
+- **Time-Bound Signed URLs**: Images are served exclusively via temporary time-bound signed URLs (3600s expiration) generated server-side. This ensures raw storage paths and bucket permissions are never exposed publicly.
 
 ---
 
-## 6. Overdue Detection SLA Mechanism
-
-Overdue complaints are detected dynamically using a configurable SLA threshold stored in `app_settings.overdue_threshold_days` (default: 7 days):
-
-1. **RPC Calculation Function**: `check_overdue_complaints()` queries unresolved complaints (`status IN ('open', 'in_progress')`) created prior to `NOW() - threshold_days`.
-2. **Automatic Invocation**: Executed automatically whenever the admin complaints list or admin dashboard is loaded.
-3. **Visual Indicators**: Flagged complaints display high-visibility `OVERDUE` badges and custom red left borders on list rows.
+## 4. Notification Engine & Resend Integration
+Transactional emails are dispatched asynchronously via the Resend API engine:
+- **Status Change Updates**: Triggered when an administrator alters a complaint status or priority. Assembles a responsive HTML template containing complaint category, status transition delta, admin notes, and direct portal deep-links sent to the resident's registered address.
+- **Important Notice Broadcasts**: Publishing a society notice flagged as `Important` dispatches a society-wide broadcast email to all registered resident accounts.
+- **Resend Free Tier Testing Support**: Built-in fallback handling automatically routes test emails to the verified project owner address (`hkgupta160420@gmail.com`) when target recipient domains are unverified on free tier API keys.
 
 ---
 
-## 7. Email Notification Engine
-
-Transactional emails are dispatched asynchronously via Resend:
-
-- **Status & Priority Updates**: Triggered when an admin changes complaint state. Compiles an HTML template with complaint ID, category, transition details, and optional admin notes, sent directly to the resident's registered email.
-- **Important Notices**: When an admin publishes a notice marked as `Important`, an email broadcast is dispatched to society residents.
-
----
-
-## 8. Akaru.fr UI Adaptation
-
-The user interface adapts Akaru.fr's editorial design language:
-
-- **Color Palette**: Off-white cream background (`#f0ece4`), dark charcoal body text (`#1a1a1a`), and terracotta accents (`#d4a574`).
-- **Interactive Rows**: Complaint lists feature full-width border-bottom items (`.akaru-row`) with slide-in hover backgrounds and diagonal arrow buttons.
-- **Typography & Components**: Oversized hero section headers with superscript item counts (`Complaints²⁴`), pill-shaped status badges, and flat, bordered stat cards without drop shadows.
+## 5. Security & Role-Based Access Control (RBAC)
+- **Database RLS Policies**: Enforces strict data isolation (`auth.uid() = resident_id` for residents, full CRUD for admins).
+- **JWT Claim Injection**: A custom Supabase access token hook (`custom_access_token_hook`) embeds `user_role` directly into session JWTs for sub-millisecond edge middleware routing.

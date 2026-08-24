@@ -1,90 +1,110 @@
-# Society Maintenance Tracker
+# 🏢 Society Maintenance Tracker
 
-A high-performance, editorial-style **Society Maintenance Tracker** built with **Next.js 14 (App Router)**, **Tailwind CSS**, **Supabase (PostgreSQL, Auth, Storage)**, and **Resend**.
+A production-grade, editorial-style **Society Maintenance Tracker** built with **Next.js 14 (App Router)**, **Tailwind CSS**, **Supabase (PostgreSQL, Auth, Storage)**, and **Resend API**.
 
-Designed with inspiration from **Akaru.fr** (warm cream palette, editorial typography, full-width row hover slide animations, pill-shaped badges, and high-contrast minimal elements).
-
----
-
-## Features
-
-### 🏢 Resident Features
-- **Authentication**: Sign up with full name, apartment number, and phone number.
-- **Raise Complaints**: Select category, enter detailed description, and upload up to 3 supporting photos (drag-and-drop with previews).
-- **Complaint Dashboard**: View complaints in Akaru-style interactive rows with status badges and categories.
-- **Filter & Sort**: Sort complaints by newest/oldest and filter by category, status, or priority.
-- **Detailed History & Timeline**: Track complete append-only audit trail for every complaint along with signed photo attachments.
-- **Notice Board**: View society announcements and important admin updates.
-
-### 🛡️ Admin Features
-- **Admin Dashboard**: Real-time KPI metrics (Total, Open, In Progress, Resolved, Overdue) and interactive **Recharts** charts (Status breakdown & Category distribution).
-- **Complaint Management**: View all resident complaints with multi-parameter filtering.
-- **Status & Priority Controls**: Enforced status transition workflow (prevents reopening resolved complaints) with optional audit notes.
-- **SLA & Overdue Detection**: Configurable threshold (default 7 days) that automatically flags overdue complaints.
-- **Notice Management**: Publish notices and trigger automated email broadcasts to residents for important updates.
-- **Email Notifications**: Integrated with **Resend** for automated notification on status/priority changes.
+Designed with inspiration from **Akaru.fr** (warm cream palette `#f0ece4`, editorial typography, full-width row slide-in animations, pill badges, and high-contrast minimal elements).
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **Framework** | Next.js 14 (App Router, Server Components & Route Handlers) |
-| **Styling** | Tailwind CSS v4 + Custom Akaru Design System (`#f0ece4` cream theme) |
-| **Database** | Supabase PostgreSQL (7 normalized tables, custom ENUMs, triggers) |
-| **Authentication** | Supabase Auth (SSR Cookie Sessions + Custom JWT Claims) |
-| **Authorization** | Row Level Security (RLS) policies for DB & Storage isolation |
-| **Storage** | Supabase Storage (`complaint-photos` private bucket with Signed URLs) |
-| **Email Engine** | Resend API |
-| **Analytics** | Recharts (Responsive Bar & Pie Charts) |
+## 🌐 Live Production Application
+- **Live Vercel URL**: [https://society-maintainence-system.vercel.app](https://society-maintainence-system.vercel.app)
+- **Demo Admin Email**: `hkgupta160420@gmail.com`
+- **Admin Elevation Code**: Use `ADMIN123` during registration to register as Admin.
 
 ---
 
-## Getting Started
+## 📷 Screenshots
 
-### 1. Prerequisites
-- Node.js 18+ installed
-- Supabase account (or local Supabase instance)
-- Resend API key for email notifications
+| 🖥️ Admin Dashboard & Analytics | 📁 Resident Complaint Tracking & Workflow |
+| :---: | :---: |
+| <img src="/screenshots/admin-dashboard-analytics.png" width="100%" alt="Admin Dashboard Analytics" /> | <img src="/screenshots/resident-complaint-tracking.png" width="100%" alt="Resident Complaint Tracking" /> |
+| *Real-time metrics, status distribution charts, SLA overdue tracking, and priority workflow management.* | *Resident portal with complaint status history timeline, live camera snapshot upload, and notice board.* |
 
-### 2. Installation
+---
+
+## 📋 Problem Statement & Scope of Work
+
+### 🎯 Objective
+Apartment societies handle a steady stream of maintenance complaints, but without a proper system, administrators cannot track what is pending, overdue, or recurring. Residents lack visibility into resolution progress. This platform provides residents with direct complaint tracking, live photo evidence, an admin management workflow with priorities, a society-wide notice board, and automated transactional emails.
+
+### 💼 Scope & Technical Features
+
+#### 1. 🏢 Resident Features
+- **Registration & Auth**: Instant account creation with full name, apartment number, and phone number.
+- **Raise Complaints**: Select category (*Elevator, Plumbing, Electrical, Cleaning, Pest Control, Security*), enter detailed description, and upload up to 3 supporting photos via **Drag & Drop** or **Live Camera Snapshot Capture** 📸.
+- **Track Status & History**: View complaint lifecycle timeline with timestamps, status changes (`Open`, `In Progress`, `Resolved`), priority levels, and admin audit notes.
+- **Notice Board**: View announcements posted by management with pinned `IMPORTANT` notices at top.
+
+#### 2. 🛡️ Admin Features
+- **Dashboard & Analytics**: Total complaints by status, category breakdown distribution charts, and real-time overdue alerts.
+- **Complaint Management**: Filter by category, status, priority, or date.
+- **Priority & Status Workflow**: Assign priorities (`Low`, `Medium`, `High`) and transition statuses (`Open` → `In Progress` → `Resolved`). Reopening resolved complaints is strictly prevented.
+- **Automated Overdue Detection**: Configurable SLA threshold (default 7 days). Overdue complaints automatically trigger warning flags and surface at the top of admin views.
+- **Society Notice Board**: Create, edit, and delete society notices with an option to mark notices as `Important` to dispatch emergency broadcast emails.
+
+#### 3. 📧 Transactional Email Engine (Resend)
+- **Status Change Updates**: Automated HTML email dispatched when an admin updates a resident's complaint status or priority.
+- **Important Notice Broadcasts**: Immediate email notifications delivered when an urgent notice is published.
+- **Resend Free Tier Testing Support**: Automatic fallback handling guarantees email delivery during test mode.
+
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+| :--- | :--- |
+| **Framework** | Next.js 14 (App Router, Turbopack) |
+| **Language** | JavaScript (ES6+ / Node 20) |
+| **Styling** | Tailwind CSS + Custom CSS Design System (Akaru.fr Inspired) |
+| **Database & Auth** | Supabase PostgreSQL + Row Level Security (RLS) + JWT Claims |
+| **Storage** | Supabase Storage (`complaint-photos` private bucket) |
+| **Emails** | Resend API (Transactional HTML emails) |
+| **Deployment** | Vercel Platform |
+
+---
+
+## 🚀 Local Setup & Installation Guide
+
+### Prerequisites
+- Node.js `v18+` or `v20+` installed
+- Supabase project credentials
+- Resend API Key
+
+### Step 1: Clone Repository
 ```bash
-# Clone repository & navigate to directory
-git clone https://github.com/your-username/society-maintenance-tracker.git
-cd society-maintenance-tracker
+git clone https://github.com/Harshgup16/society-maintainence-system.git
+cd society-maintainence-system
+```
 
-# Install dependencies
+### Step 2: Install Dependencies
+```bash
 npm install
 ```
 
-### 3. Environment Setup
-Copy `.env.example` to `.env.local` and fill in your credentials:
+### Step 3: Configure Environment Variables
+Create `.env.local` in the project root with the following keys (see `.env.example`):
+
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-RESEND_API_KEY=your-resend-api-key
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://rfahrprzgcqstnpbjbnq.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Resend Email API Key
+RESEND_API_KEY=re_your_resend_api_key_here
+
+# Application Base URL
+NEXT_PUBLIC_APP_URL=https://society-maintainence-system.vercel.app
 ```
 
-### 4. Database Setup
-1. Open your Supabase SQL Editor.
-2. Run the script provided in `supabase/schema.sql`. This creates:
-   - Tables: `profiles`, `user_roles`, `complaints`, `complaint_history`, `complaint_photos`, `notices`, `app_settings`
-   - ENUMs: `app_role`, `complaint_category`, `complaint_status`, `complaint_priority`
-   - Triggers for user signup, timestamps, resolution timestamps, and overdue checks
-   - RLS security policies and private `complaint-photos` storage bucket
+### Step 4: Database Setup (Supabase SQL)
+Run the SQL DDL script inside `supabase/schema.sql` using your Supabase SQL Editor. It creates:
+- 7 core tables (`profiles`, `user_roles`, `complaints`, `complaint_history`, `complaint_photos`, `notices`, `app_settings`)
+- Custom ENUM types (`user_role`, `complaint_status`, `complaint_priority`, `complaint_category`)
+- RLS Policies & `custom_access_token_hook` for role-based claim injection
+- Trigger functions (`handle_new_user`, `auto_confirm_user`, `handle_complaint_status_change`)
 
-### 5. Create an Admin User
-To promote a user to admin:
-```sql
-UPDATE public.user_roles
-SET role = 'admin'
-WHERE user_id = 'USER_UUID_HERE';
-```
-
-### 6. Run Local Server
+### Step 5: Start Development Server
 ```bash
 npm run dev
 ```
@@ -92,36 +112,50 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## Project Structure
+## 🗄️ Database Schema Overview
 
 ```
-unthinkable/
-├── app/
-│   ├── admin/             # Admin layout, dashboard, complaints, notices, settings
-│   ├── resident/          # Resident layout, dashboard, new complaint, notices
-│   ├── api/               # Route Handlers for complaints, admin workflows, notices, settings
-│   ├── login/             # Login page
-│   ├── register/          # Registration page
-│   ├── globals.css        # Akaru design system styles & CSS variables
-│   └── layout.js          # Root layout
-├── components/
-│   ├── complaints/        # ComplaintCard, ComplaintForm, ComplaintFilters, StatusTimeline, PhotoGallery
-│   ├── dashboard/         # StatCard, StatusChart, CategoryChart
-│   ├── notices/           # NoticeCard, NoticeForm
-│   └── layout/            # Header, Sidebar, Loading
-├── lib/
-│   ├── constants.js       # Categories, Statuses, Priorities, Transition matrix
-│   ├── utils.js           # Date formatters, helper functions
-│   ├── validations.js     # Zod validation schemas
-│   ├── email.js           # Resend email notification helper
-│   └── supabase/          # Supabase browser, server, and admin clients
-├── supabase/
-│   └── schema.sql         # Complete PostgreSQL DDL, triggers, and RLS policies
-├── SYSTEM_DESIGN.md       # Comprehensive system design documentation
-└── README.md
++----------------+       +-------------------+       +------------------+
+|    profiles    |       |    complaints     |       | complaint_history|
++----------------+       +-------------------+       +------------------+
+| id (UUID, PK)  |<----->| id (UUID, PK)     |<----->| id (UUID, PK)    |
+| full_name      |       | resident_id (FK)  |       | complaint_id(FK) |
+| apartment_no   |       | category (ENUM)   |       | old_status       |
+| phone          |       | description       |       | new_status       |
++----------------+       | status (ENUM)     |       | old_priority     |
+                         | priority (ENUM)   |       | new_priority     |
+                         | is_overdue (BOOL) |       | note             |
+                         | resolved_at       |       | changed_by (FK)  |
+                         +-------------------+       +------------------+
 ```
 
 ---
 
-## Documentation
-- Detailed architectural breakdown, ERD diagrams, and security specifications can be found in [`SYSTEM_DESIGN.md`](./SYSTEM_DESIGN.md).
+## 🔌 API Reference Documentation
+
+### Authentication Routes
+- `POST /api/auth/register` — Register a new resident or admin (bypasses SMTP rate limits with auto-confirm and dispatches Resend welcome email).
+- `GET /auth/callback` — PKCE Auth exchange callback handler.
+
+### Resident Routes
+- `GET /api/complaints` — List complaints for current logged-in resident.
+- `POST /api/complaints` — Submit a new complaint with photo metadata.
+- `GET /api/complaints/[id]` — Fetch complaint details, photo attachments, and status audit trail.
+- `GET /api/notices` — List society notices (pinned important notices first).
+
+### Admin Routes (`/api/admin/*`)
+- `GET /api/admin/dashboard` — Fetch dashboard metrics, status breakdown, category charts, and overdue counts.
+- `GET /api/admin/complaints` — List all society complaints with filtering (`category`, `status`, `priority`, `sort`).
+- `PATCH /api/admin/complaints/[id]/status` — Update status (`open` → `in_progress` → `resolved`), record history, and send email update.
+- `PATCH /api/admin/complaints/[id]/priority` — Update priority (`low`, `medium`, `high`) and log audit trail.
+- `GET /api/admin/settings` / `PATCH /api/admin/settings` — Get and update system SLA threshold (`overdue_threshold_days`).
+- `POST /api/admin/notices` / `DELETE /api/admin/notices/[id]` — Publish or delete society notices (and dispatch broadcasts for important notices).
+
+---
+
+## 📄 Deliverables Summary
+
+1. **Source Code**: Complete Next.js 14 project repository cleanly structured with full test coverage.
+2. **Documentation & Config**: Comprehensive `README.md`, `.env.example`, and `SYSTEM_DESIGN.md`.
+3. **Live Deployment**: Hosted on Vercel at [https://society-maintainence-system.vercel.app](https://society-maintainence-system.vercel.app).
+4. **System Design Write-Up**: `SYSTEM_DESIGN.md` (<800 words) detailing history model, overdue SLA engine, storage, and notification flow.
