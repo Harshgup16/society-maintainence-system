@@ -10,7 +10,7 @@ export async function POST(request) {
 
     const supabaseAdmin = createAdminClient();
 
-    // Create user via Admin API with email_confirm: true (bypasses Supabase default email link)
+    // Create user via Admin API with email_confirm: true (auto-confirmed)
     const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: validated.email,
       password: validated.password,
@@ -26,6 +26,14 @@ export async function POST(request) {
       return apiError(createError.message, 400);
     }
 
+    // Check if registering as admin with secret code ADMIN123
+    const isTargetAdmin = body.admin_code === 'ADMIN123';
+    if (isTargetAdmin) {
+      await supabaseAdmin
+        .from('user_roles')
+        .upsert({ user_id: userData.user.id, role: 'admin' });
+    }
+
     // Send custom welcome email via Resend
     sendWelcomeEmail({
       residentEmail: validated.email,
@@ -35,6 +43,7 @@ export async function POST(request) {
 
     return apiResponse({
       user: userData.user,
+      role: isTargetAdmin ? 'admin' : 'resident',
       message: 'Account created and confirmed successfully!',
     }, 201);
   } catch (err) {

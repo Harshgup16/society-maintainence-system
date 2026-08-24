@@ -12,7 +12,9 @@ export default function RegisterPage() {
     password: '',
     apartment_no: '',
     phone: '',
+    admin_code: '',
   });
+  const [showAdminField, setShowAdminField] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -33,7 +35,7 @@ export default function RegisterPage() {
         throw new Error('Password must be at least 6 characters');
       }
 
-      // Call our API route which creates user, auto-confirms, and sends Resend welcome email
+      // Call server registration API
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,20 +47,20 @@ export default function RegisterPage() {
         throw new Error(json.error || 'Registration failed');
       }
 
-      // Automatically sign in the user immediately
+      // Sign in user immediately
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
-      if (signInError) {
-        throw signInError;
-      }
+      if (signInError) throw signInError;
 
       setSuccess(true);
 
+      const targetPath = json.data?.role === 'admin' ? '/admin/dashboard' : '/resident/dashboard';
+
       setTimeout(() => {
-        router.push('/resident/dashboard');
+        router.push(targetPath);
         router.refresh();
       }, 1000);
     } catch (err) {
@@ -77,8 +79,8 @@ export default function RegisterPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-semibold mb-2">Account Created Successfully!</h2>
-          <p className="text-text-muted text-sm">Logging you in automatically...</p>
+          <h2 className="text-2xl font-semibold mb-2">Account Created!</h2>
+          <p className="text-text-muted text-sm">Logging you in...</p>
         </div>
       </div>
     );
@@ -93,7 +95,7 @@ export default function RegisterPage() {
             Create account
           </h1>
           <p className="text-text-muted text-sm">
-            Register as a resident to raise and track complaints
+            Register to raise complaints or manage society maintenance
           </p>
         </div>
 
@@ -177,6 +179,33 @@ export default function RegisterPage() {
                   required
                 />
               </div>
+            </div>
+
+            {/* Optional Admin Code Toggle */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAdminField(!showAdminField)}
+                className="text-xs text-text-muted hover:text-text-primary underline cursor-pointer block"
+              >
+                {showAdminField ? '- Hide Admin Passcode' : '+ Register as Admin?'}
+              </button>
+
+              {showAdminField && (
+                <div className="mt-3">
+                  <label className="input-label" htmlFor="reg-admincode">Admin Secret Code</label>
+                  <input
+                    id="reg-admincode"
+                    name="admin_code"
+                    type="password"
+                    value={formData.admin_code}
+                    onChange={handleChange}
+                    className="input-editorial bg-amber-50/40"
+                    placeholder="Enter ADMIN123"
+                  />
+                  <p className="text-[11px] text-text-muted mt-1">Use <code>ADMIN123</code> to grant admin privileges.</p>
+                </div>
+              )}
             </div>
 
             <button
