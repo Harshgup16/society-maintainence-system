@@ -39,6 +39,7 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
           data: {
             full_name: formData.full_name,
             apartment_no: formData.apartment_no,
