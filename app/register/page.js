@@ -35,19 +35,58 @@ export default function RegisterPage() {
         throw new Error('Password must be at least 6 characters');
       }
 
-      // Call server registration API
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      // 1. Try server-side registration endpoint
+      let isRegistered = false;
+      let targetRole = 'resident';
 
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || 'Registration failed');
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+
+        const text = await res.text();
+        let json = null;
+        try {
+          json = text ? JSON.parse(text) : null;
+        } catch (_) {}
+
+        if (res.ok && json && json.success) {
+          isRegistered = true;
+          targetRole = json.data?.role || 'resident';
+        } else if (json && json.error) {
+          throw new Error(json.error);
+        }
+      } catch (apiErr) {
+        // If error message is explicit from server, rethrow it
+        if (apiErr.message && !apiErr.message.includes('JSON')) {
+          throw apiErr;
+        }
       }
 
-      // Sign in user immediately
+      // 2. Fallback to direct Supabase Auth client if server API was unconfigured
+      if (!isRegistered) {
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.full_name,
+              apartment_no: formData.apartment_no,
+              phone: formData.phone,
+            },
+          },
+        });
+
+        if (authError) throw authError;
+
+        if (authData?.user?.identities?.length === 0) {
+          throw new Error('An account with this email already exists');
+        }
+      }
+
+      // 3. Automatically sign in the user
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
@@ -57,7 +96,7 @@ export default function RegisterPage() {
 
       setSuccess(true);
 
-      const targetPath = json.data?.role === 'admin' ? '/admin/dashboard' : '/resident/dashboard';
+      const targetPath = targetRole === 'admin' ? '/admin/dashboard' : '/resident/dashboard';
 
       setTimeout(() => {
         router.push(targetPath);

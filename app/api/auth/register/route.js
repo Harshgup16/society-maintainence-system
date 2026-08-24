@@ -8,6 +8,10 @@ export async function POST(request) {
     const body = await request.json();
     const validated = registerSchema.parse(body);
 
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return apiError('Server configuration missing: SUPABASE_SERVICE_ROLE_KEY environment variable is not set.', 500);
+    }
+
     const supabaseAdmin = createAdminClient();
 
     // Create user via Admin API with email_confirm: true (auto-confirmed)
