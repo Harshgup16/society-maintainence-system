@@ -14,11 +14,11 @@ export async function POST(request) {
 
     const supabaseAdmin = createAdminClient();
 
-    // Create user via Admin API with email_confirm: false (enforce professional email verification)
+    // Create user via Admin API with email_confirm: true (bypasses Supabase SMTP rate limits completely)
     const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: validated.email,
       password: validated.password,
-      email_confirm: false, // Enforce email confirmation link requirement
+      email_confirm: true,
       user_metadata: {
         full_name: validated.full_name,
         apartment_no: validated.apartment_no,
@@ -38,7 +38,7 @@ export async function POST(request) {
         .upsert({ user_id: userData.user.id, role: 'admin' });
     }
 
-    // Send custom welcome & verification email via Resend
+    // Send custom welcome email via Resend (unrestricted by Supabase SMTP rate limits)
     sendWelcomeEmail({
       residentEmail: validated.email,
       residentName: validated.full_name,
@@ -48,8 +48,7 @@ export async function POST(request) {
     return apiResponse({
       user: userData.user,
       role: isTargetAdmin ? 'admin' : 'resident',
-      requiresEmailConfirmation: true,
-      message: 'Account created! Please check your email for the confirmation link.',
+      message: 'Account created and confirmed successfully!',
     }, 201);
   } catch (err) {
     return apiError(err.errors ? err.errors[0].message : err.message, 400);

@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [showAdminField, setShowAdminField] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -35,11 +35,9 @@ export default function RegisterPage() {
         throw new Error('Password must be at least 6 characters');
       }
 
-      const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://society-maintainence-system.vercel.app';
-      const redirectUrl = `${siteUrl}/auth/callback`;
-
-      // 1. Try server-side registration endpoint
+      // 1. Register via server-side endpoint (uses Admin API, bypassing rate limits)
       let isRegistered = false;
+      let targetRole = 'resident';
 
       try {
         const res = await fetch('/api/auth/register', {
@@ -56,6 +54,7 @@ export default function RegisterPage() {
 
         if (res.ok && json && json.success) {
           isRegistered = true;
+          targetRole = json.data?.role || 'resident';
         } else if (json && json.error) {
           throw new Error(json.error);
         }
@@ -65,13 +64,12 @@ export default function RegisterPage() {
         }
       }
 
-      // 2. Client-side registration with Supabase Auth (with email confirmation link)
+      // 2. Fallback client-side registration if server route was unavailable
       if (!isRegistered) {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
-            emailRedirectTo: redirectUrl,
             data: {
               full_name: formData.full_name,
               apartment_no: formData.apartment_no,
@@ -87,7 +85,22 @@ export default function RegisterPage() {
         }
       }
 
-      setEmailSent(true);
+      // 3. Automatically sign in the user
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signInError) throw signInError;
+
+      setSuccess(true);
+
+      const targetPath = targetRole === 'admin' ? '/admin/dashboard' : '/resident/dashboard';
+
+      setTimeout(() => {
+        router.push(targetPath);
+        router.refresh();
+      }, 1000);
     } catch (err) {
       setError(err.message || 'Failed to create account');
     } finally {
@@ -95,31 +108,20 @@ export default function RegisterPage() {
     }
   };
 
-  if (emailSent) {
+  if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
         <div className="w-full max-w-md page-enter relative z-10 text-center">
           <div className="glass-card p-10 border border-white/80 shadow-2xl">
-            <div className="w-20 h-20 rounded-full bg-amber-100/80 border border-amber-300/60 text-amber-700 flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-
-            <h2 className="text-3xl font-semibold tracking-tight text-text-primary mb-3">
-              Confirm your email
+            <h2 className="text-2xl font-semibold tracking-tight text-text-primary mb-2">
+              Account Created!
             </h2>
-            <p className="text-text-secondary text-sm leading-relaxed mb-6">
-              We sent a verification link to <span className="font-semibold text-text-primary">{formData.email}</span>. Please check your inbox and click the link to activate your account.
-            </p>
-
-            <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200/60 text-xs text-amber-900 mb-8">
-              💡 <strong>Tip:</strong> If you don't see the email within 1-2 minutes, check your <strong>Spam / Junk</strong> folder.
-            </div>
-
-            <Link href="/login" className="btn-primary w-full shadow-lg">
-              Return to Sign In
-            </Link>
+            <p className="text-text-muted text-sm">Logging you in automatically...</p>
           </div>
         </div>
       </div>
