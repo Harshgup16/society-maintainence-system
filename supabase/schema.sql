@@ -129,6 +129,21 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- Auto-confirm user email upon registration
+CREATE OR REPLACE FUNCTION public.auto_confirm_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.email_confirmed_at IS NULL THEN
+    NEW.email_confirmed_at = NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created_auto_confirm
+  BEFORE INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.auto_confirm_user();
+
 -- Trigger function: Update timestamp on complaints
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER AS $$
