@@ -17,7 +17,7 @@ Designed with inspiration from **Akaru.fr** (warm cream palette `#f0ece4`, edito
 
 | 🖥️ Admin Dashboard & Analytics | 📁 Resident Complaint Tracking & Workflow |
 | :---: | :---: |
-| <img src="/screenshots/admin-dashboard-analytics.png" width="100%" alt="Admin Dashboard Analytics" /> | <img src="/screenshots/resident-complaint-tracking.png" width="100%" alt="Resident Complaint Tracking" /> |
+| ![Admin Dashboard Analytics](public/screenshots/admin-dashboard-analytics.png) | ![Resident Complaint Tracking](public/screenshots/resident-complaint-tracking.png) |
 | *Real-time metrics, status distribution charts, SLA overdue tracking, and priority workflow management.* | *Resident portal with complaint status history timeline, live camera snapshot upload, and notice board.* |
 
 ---
