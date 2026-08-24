@@ -44,10 +44,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cream p-4">
-      <div className="w-full max-w-md page-enter">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative ambient blurred blobs */}
+      <div className="absolute top-1/4 -left-20 w-72 h-72 bg-amber-200/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-blue-200/25 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md page-enter relative z-10">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 border border-black/10 text-xs font-semibold uppercase tracking-widest text-text-muted mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+            Society Portal
+          </div>
           <h1 className="text-4xl font-semibold tracking-tight text-text-primary mb-2">
             Welcome back
           </h1>
@@ -57,10 +65,10 @@ export default function LoginPage() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-2xl p-8 border border-border">
+        <div className="glass-card p-8 border border-white/80 shadow-xl">
           <form onSubmit={handleLogin} className="space-y-6">
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              <div className="p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-red-700 text-sm font-medium animate-shake">
                 {error}
               </div>
             )}
@@ -96,7 +104,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full"
+              className="btn-primary w-full shadow-lg hover:shadow-xl transition-all"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -112,19 +120,19 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center pt-4 border-t border-border-light">
             <p className="text-sm text-text-muted">
               Don't have an account?{' '}
-              <Link href="/register" className="text-text-primary font-medium hover:underline">
-                Register
+              <Link href="/register" className="text-text-primary font-semibold hover:underline">
+                Create one now
               </Link>
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-text-muted mt-8">
-          Society Maintenance Tracker
+        <p className="text-center text-xs text-text-muted mt-8 font-medium tracking-wide">
+          SOCIETY MAINTENANCE TRACKER • PRODUCTION READY
         </p>
       </div>
     </div>
