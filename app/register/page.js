@@ -29,39 +29,38 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Validate
       if (formData.password.length < 6) {
         throw new Error('Password must be at least 6 characters');
       }
 
-      // Sign up with Supabase Auth
-      const { data, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
-          data: {
-            full_name: formData.full_name,
-            apartment_no: formData.apartment_no,
-            phone: formData.phone,
-          },
-        },
+      // Call our API route which creates user, auto-confirms, and sends Resend welcome email
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
 
-      if (authError) throw authError;
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Registration failed');
+      }
 
-      // Check if email confirmation is required
-      if (data?.user?.identities?.length === 0) {
-        throw new Error('An account with this email already exists');
+      // Automatically sign in the user immediately
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signInError) {
+        throw signInError;
       }
 
       setSuccess(true);
 
-      // Auto-redirect after a short delay
       setTimeout(() => {
         router.push('/resident/dashboard');
         router.refresh();
-      }, 1500);
+      }, 1000);
     } catch (err) {
       setError(err.message || 'Failed to create account');
     } finally {
@@ -78,8 +77,8 @@ export default function RegisterPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-semibold mb-2">Account created!</h2>
-          <p className="text-text-muted text-sm">Redirecting to your dashboard...</p>
+          <h2 className="text-2xl font-semibold mb-2">Account Created Successfully!</h2>
+          <p className="text-text-muted text-sm">Logging you in automatically...</p>
         </div>
       </div>
     );
