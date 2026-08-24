@@ -9,6 +9,13 @@ export default function Sidebar({ role = 'resident', user }) {
   const router = useRouter();
   const supabase = createClient();
 
+  const closeSidebarOnMobile = () => {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.remove('open');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (overlay) overlay.classList.add('hidden');
+  };
+
   const residentLinks = [
     { href: '/resident/dashboard', label: 'Dashboard', icon: DashboardIcon },
     { href: '/resident/complaints/new', label: 'New Complaint', icon: PlusIcon },
@@ -25,6 +32,7 @@ export default function Sidebar({ role = 'resident', user }) {
   const links = role === 'admin' ? adminLinks : residentLinks;
 
   const handleLogout = async () => {
+    closeSidebarOnMobile();
     await supabase.auth.signOut();
     router.push('/login');
     router.refresh();
@@ -33,8 +41,8 @@ export default function Sidebar({ role = 'resident', user }) {
   return (
     <aside className="sidebar" id="sidebar">
       {/* Logo */}
-      <div className="p-6 border-b border-border">
-        <Link href={role === 'admin' ? '/admin/dashboard' : '/resident/dashboard'}>
+      <div className="p-6 border-b border-border flex items-center justify-between">
+        <Link href={role === 'admin' ? '/admin/dashboard' : '/resident/dashboard'} onClick={closeSidebarOnMobile}>
           <h2 className="text-lg font-semibold tracking-tight text-text-primary">
             SMT
           </h2>
@@ -42,6 +50,15 @@ export default function Sidebar({ role = 'resident', user }) {
             Maintenance Tracker
           </p>
         </Link>
+        <button
+          onClick={closeSidebarOnMobile}
+          className="lg:hidden p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-black/5"
+          aria-label="Close menu"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* User Info */}
@@ -49,7 +66,7 @@ export default function Sidebar({ role = 'resident', user }) {
         <p className="text-sm font-medium text-text-primary truncate">
           {user?.user_metadata?.full_name || 'User'}
         </p>
-        <p className="text-[11px] uppercase tracking-widest text-text-muted mt-0.5">
+        <p className="text-[11px] uppercase tracking-widest text-text-muted mt-0.5 font-semibold">
           {role}
         </p>
       </div>
@@ -63,6 +80,7 @@ export default function Sidebar({ role = 'resident', user }) {
             <Link
               key={link.href}
               href={link.href}
+              onClick={closeSidebarOnMobile}
               className={`sidebar-link ${isActive ? 'active' : ''}`}
             >
               <link.icon className="w-[18px] h-[18px]" />

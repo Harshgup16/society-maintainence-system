@@ -8,12 +8,12 @@ export default function ComplaintFilters({ filters, onChange }) {
   };
 
   return (
-    <div className="flex flex-wrap gap-3 mb-6">
+    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2.5 mb-6">
       {/* Category filter */}
       <select
         value={filters.category || ''}
         onChange={(e) => handleChange('category', e.target.value)}
-        className="px-4 py-2 rounded-full border border-border bg-white text-sm text-text-primary cursor-pointer hover:border-text-muted transition-colors"
+        className="w-full sm:w-auto px-3.5 py-2 rounded-full border border-border bg-white text-xs sm:text-sm text-text-primary cursor-pointer hover:border-text-muted transition-colors truncate"
       >
         <option value="">All Categories</option>
         {CATEGORIES.map((cat) => (
@@ -25,7 +25,7 @@ export default function ComplaintFilters({ filters, onChange }) {
       <select
         value={filters.status || ''}
         onChange={(e) => handleChange('status', e.target.value)}
-        className="px-4 py-2 rounded-full border border-border bg-white text-sm text-text-primary cursor-pointer hover:border-text-muted transition-colors"
+        className="w-full sm:w-auto px-3.5 py-2 rounded-full border border-border bg-white text-xs sm:text-sm text-text-primary cursor-pointer hover:border-text-muted transition-colors truncate"
       >
         <option value="">All Statuses</option>
         {STATUSES.map((s) => (
@@ -37,7 +37,7 @@ export default function ComplaintFilters({ filters, onChange }) {
       <select
         value={filters.priority || ''}
         onChange={(e) => handleChange('priority', e.target.value)}
-        className="px-4 py-2 rounded-full border border-border bg-white text-sm text-text-primary cursor-pointer hover:border-text-muted transition-colors"
+        className="w-full sm:w-auto px-3.5 py-2 rounded-full border border-border bg-white text-xs sm:text-sm text-text-primary cursor-pointer hover:border-text-muted transition-colors truncate"
       >
         <option value="">All Priorities</option>
         {PRIORITIES.map((p) => (
@@ -49,7 +49,7 @@ export default function ComplaintFilters({ filters, onChange }) {
       <select
         value={filters.sort || 'newest'}
         onChange={(e) => handleChange('sort', e.target.value)}
-        className="px-4 py-2 rounded-full border border-border bg-white text-sm text-text-primary cursor-pointer hover:border-text-muted transition-colors"
+        className="w-full sm:w-auto px-3.5 py-2 rounded-full border border-border bg-white text-xs sm:text-sm text-text-primary cursor-pointer hover:border-text-muted transition-colors truncate"
       >
         <option value="newest">Newest First</option>
         <option value="oldest">Oldest First</option>
@@ -61,7 +61,7 @@ export default function ComplaintFilters({ filters, onChange }) {
       {(filters.category || filters.status || filters.priority) && (
         <button
           onClick={() => onChange({ sort: filters.sort })}
-          className="px-4 py-2 rounded-full text-sm text-text-muted hover:text-text-primary transition-colors"
+          className="col-span-2 sm:col-span-1 px-4 py-2 rounded-full text-xs sm:text-sm text-text-muted hover:text-text-primary transition-colors text-center"
         >
           Clear filters
         </button>

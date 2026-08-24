@@ -7,7 +7,7 @@ import PriorityBadge from '@/components/complaints/PriorityBadge';
 import StatusTimeline from '@/components/complaints/StatusTimeline';
 import PhotoGallery from '@/components/complaints/PhotoGallery';
 import Loading from '@/components/layout/Loading';
-import { formatDateTime, capitalize } from '@/lib/utils';
+import { formatDateTime } from '@/lib/utils';
 
 export default function ResidentComplaintDetailPage({ params }) {
   const { id } = use(params);
@@ -44,16 +44,16 @@ export default function ResidentComplaintDetailPage({ params }) {
   const { complaint, history } = data;
 
   return (
-    <div>
+    <div className="space-y-6">
       <Header title={`Complaint #${complaint.id.slice(0, 8)}`}>
         <StatusBadge status={complaint.status} />
       </Header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Main detail column (2 cols) */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6 lg:space-y-8">
           {/* Main Card */}
-          <div className="bg-white rounded-2xl p-8 border border-border space-y-6">
+          <div className="bg-white rounded-2xl p-5 md:p-8 border border-border space-y-6 shadow-xs">
             <div>
               <span className="input-label">Category</span>
               <p className="text-xl font-medium text-text-primary capitalize">
@@ -63,7 +63,7 @@ export default function ResidentComplaintDetailPage({ params }) {
 
             <div>
               <span className="input-label">Description</span>
-              <p className="text-text-primary whitespace-pre-wrap leading-relaxed">
+              <p className="text-text-primary whitespace-pre-wrap leading-relaxed text-sm md:text-base">
                 {complaint.description}
               </p>
             </div>
@@ -75,7 +75,7 @@ export default function ResidentComplaintDetailPage({ params }) {
               </div>
               <div>
                 <span className="input-label">Submitted On</span>
-                <p className="text-sm text-text-secondary">
+                <p className="text-xs md:text-sm text-text-secondary">
                   {formatDateTime(complaint.created_at)}
                 </p>
               </div>
@@ -83,15 +83,15 @@ export default function ResidentComplaintDetailPage({ params }) {
           </div>
 
           {/* Photos section */}
-          <div className="bg-white rounded-2xl p-8 border border-border">
-            <h3 className="text-lg font-medium text-text-primary mb-4">Attached Photos</h3>
+          <div className="bg-white rounded-2xl p-5 md:p-8 border border-border shadow-xs">
+            <h3 className="text-base md:text-lg font-medium text-text-primary mb-4">Attached Photos</h3>
             <PhotoGallery complaintId={complaint.id} />
           </div>
         </div>
 
         {/* Audit history column (1 col) */}
-        <div className="bg-white rounded-2xl p-8 border border-border h-fit">
-          <h3 className="text-lg font-medium text-text-primary mb-6">Status Timeline</h3>
+        <div className="bg-white rounded-2xl p-5 md:p-8 border border-border h-fit shadow-xs">
+          <h3 className="text-base md:text-lg font-medium text-text-primary mb-6">Status Timeline</h3>
           <StatusTimeline history={history} />
         </div>
       </div>

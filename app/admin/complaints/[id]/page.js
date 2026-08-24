@@ -7,8 +7,8 @@ import PriorityBadge from '@/components/complaints/PriorityBadge';
 import StatusTimeline from '@/components/complaints/StatusTimeline';
 import PhotoGallery from '@/components/complaints/PhotoGallery';
 import Loading from '@/components/layout/Loading';
-import { formatDateTime, capitalize } from '@/lib/utils';
-import { STATUSES, PRIORITIES, VALID_TRANSITIONS } from '@/lib/constants';
+import { capitalize } from '@/lib/utils';
+import { PRIORITIES, VALID_TRANSITIONS } from '@/lib/constants';
 
 export default function AdminComplaintDetailPage({ params }) {
   const { id } = use(params);
@@ -96,11 +96,11 @@ export default function AdminComplaintDetailPage({ params }) {
   const allowedTransitions = VALID_TRANSITIONS[currentStatus] || [];
 
   return (
-    <div>
+    <div className="space-y-6">
       <Header title={`Complaint #${complaint.id.slice(0, 8)}`}>
         <div className="flex items-center gap-2">
           {complaint.is_overdue && complaint.status !== 'resolved' && (
-            <span className="bg-status-overdue text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            <span className="bg-status-overdue text-white text-[10px] md:text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
               Overdue
             </span>
           )}
@@ -109,16 +109,16 @@ export default function AdminComplaintDetailPage({ params }) {
       </Header>
 
       {error && (
-        <div className="p-4 mb-6 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="lg:col-span-2 space-y-6 lg:space-y-8">
           {/* Admin Workflow Control Panel */}
-          <div className="bg-white rounded-2xl p-8 border border-border space-y-6">
-            <h3 className="text-xl font-medium text-text-primary">Admin Control Panel</h3>
+          <div className="bg-white rounded-2xl p-5 md:p-8 border border-border space-y-6 shadow-xs">
+            <h3 className="text-lg md:text-xl font-medium text-text-primary">Admin Control Panel</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Status Update Form */}
@@ -130,7 +130,7 @@ export default function AdminComplaintDetailPage({ params }) {
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
                     disabled={currentStatus === 'resolved'}
-                    className="input-editorial cursor-pointer"
+                    className="input-editorial cursor-pointer text-sm"
                   >
                     <option value={currentStatus}>{capitalize(currentStatus.replace('_', ' '))} (Current)</option>
                     {allowedTransitions.map((s) => (
@@ -142,7 +142,7 @@ export default function AdminComplaintDetailPage({ params }) {
                 <button
                   type="submit"
                   disabled={updatingStatus || status === currentStatus || currentStatus === 'resolved'}
-                  className="btn-primary text-xs py-2 px-6"
+                  className="btn-primary text-xs py-2.5 px-6 w-full md:w-auto"
                 >
                   {updatingStatus ? 'Updating...' : 'Save Status'}
                 </button>
@@ -156,7 +156,7 @@ export default function AdminComplaintDetailPage({ params }) {
                     id="admin-priority-select"
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                    className="input-editorial cursor-pointer"
+                    className="input-editorial cursor-pointer text-sm"
                   >
                     {PRIORITIES.map((p) => (
                       <option key={p.value} value={p.value}>{p.label}</option>
@@ -167,7 +167,7 @@ export default function AdminComplaintDetailPage({ params }) {
                 <button
                   type="submit"
                   disabled={updatingPriority || priority === complaint.priority}
-                  className="btn-secondary text-xs py-2 px-6"
+                  className="btn-secondary text-xs py-2.5 px-6 w-full md:w-auto"
                 >
                   {updatingPriority ? 'Updating...' : 'Save Priority'}
                 </button>
@@ -182,46 +182,46 @@ export default function AdminComplaintDetailPage({ params }) {
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="input-editorial"
+                className="input-editorial text-sm"
                 placeholder="Reason for change or update sent to resident..."
               />
             </div>
           </div>
 
           {/* Details Card */}
-          <div className="bg-white rounded-2xl p-8 border border-border space-y-6">
+          <div className="bg-white rounded-2xl p-5 md:p-8 border border-border space-y-6 shadow-xs">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="input-label">Resident Name</span>
-                <p className="text-base font-medium text-text-primary">{complaint.profiles?.full_name}</p>
+                <p className="text-sm md:text-base font-medium text-text-primary">{complaint.profiles?.full_name}</p>
               </div>
               <div>
                 <span className="input-label">Apartment No.</span>
-                <p className="text-base font-medium text-text-primary">Apt {complaint.profiles?.apartment_no}</p>
+                <p className="text-sm md:text-base font-medium text-text-primary">Apt {complaint.profiles?.apartment_no}</p>
               </div>
             </div>
 
             <div>
               <span className="input-label">Category</span>
-              <p className="text-lg font-medium text-text-primary capitalize">{complaint.category?.replace('_', ' ')}</p>
+              <p className="text-base md:text-lg font-medium text-text-primary capitalize">{complaint.category?.replace('_', ' ')}</p>
             </div>
 
             <div>
               <span className="input-label">Description</span>
-              <p className="text-text-primary whitespace-pre-wrap leading-relaxed">{complaint.description}</p>
+              <p className="text-text-primary whitespace-pre-wrap leading-relaxed text-sm md:text-base">{complaint.description}</p>
             </div>
           </div>
 
           {/* Photo Gallery */}
-          <div className="bg-white rounded-2xl p-8 border border-border">
-            <h3 className="text-lg font-medium text-text-primary mb-4">Attached Photos</h3>
+          <div className="bg-white rounded-2xl p-5 md:p-8 border border-border shadow-xs">
+            <h3 className="text-base md:text-lg font-medium text-text-primary mb-4">Attached Photos</h3>
             <PhotoGallery complaintId={complaint.id} />
           </div>
         </div>
 
         {/* Audit Timeline */}
-        <div className="bg-white rounded-2xl p-8 border border-border h-fit">
-          <h3 className="text-lg font-medium text-text-primary mb-6">Status Audit History</h3>
+        <div className="bg-white rounded-2xl p-5 md:p-8 border border-border h-fit shadow-xs">
+          <h3 className="text-base md:text-lg font-medium text-text-primary mb-6">Status Audit History</h3>
           <StatusTimeline history={history} />
         </div>
       </div>
