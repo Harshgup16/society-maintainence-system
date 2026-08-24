@@ -9,16 +9,16 @@ export async function POST(request) {
     const validated = registerSchema.parse(body);
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return apiError('Server configuration missing: SUPABASE_SERVICE_ROLE_KEY environment variable is not set.', 500);
+      return apiError('Server configuration missing: SUPABASE_SERVICE_ROLE_KEY is not set.', 500);
     }
 
     const supabaseAdmin = createAdminClient();
 
-    // Create user via Admin API with email_confirm: true (auto-confirmed)
+    // Create user via Admin API with email_confirm: false (enforce professional email verification)
     const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: validated.email,
       password: validated.password,
-      email_confirm: true,
+      email_confirm: false, // Enforce email confirmation link requirement
       user_metadata: {
         full_name: validated.full_name,
         apartment_no: validated.apartment_no,
@@ -38,7 +38,7 @@ export async function POST(request) {
         .upsert({ user_id: userData.user.id, role: 'admin' });
     }
 
-    // Send custom welcome email via Resend
+    // Send custom welcome & verification email via Resend
     sendWelcomeEmail({
       residentEmail: validated.email,
       residentName: validated.full_name,
@@ -48,7 +48,8 @@ export async function POST(request) {
     return apiResponse({
       user: userData.user,
       role: isTargetAdmin ? 'admin' : 'resident',
-      message: 'Account created and confirmed successfully!',
+      requiresEmailConfirmation: true,
+      message: 'Account created! Please check your email for the confirmation link.',
     }, 201);
   } catch (err) {
     return apiError(err.errors ? err.errors[0].message : err.message, 400);
